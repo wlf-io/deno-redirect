@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  redirect:
+    image: denoland/deno:alpine-1.32.0
+    ports:
+     - 127.0.0.5:8081:8080/tcp
+    volumes:
+      - ".:/app"
+    entrypoint: deno task watch
+    working_dir: /app

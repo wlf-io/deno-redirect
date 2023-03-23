@@ -48,20 +48,26 @@ export class Server {
       if (path.length < 1) {
         await request.respondWith(new Response("Bad Request", { status: 400 }));
       } else if (type == "register") {
-        this.authedRequestResponse(request, (data)=>{
-            const key = (data.key || "").trim().toLowerCase();
-            assertStringLen(key, 3, "KEY");
-            if(["ping","register","reload"].includes(key)){
-                return Promise.reject("INVALID KEY");
+        this.authedRequestResponse(request, async (data)=>{
+            if(data.type === "token"){
+                const identifier = data.identifier || "";
+                assertStringLen(identifier,5,"IDENTIFIER");
+                return await this.auths.addAuth(identifier);
+            } else {
+                const key = (data.key || "").trim().toLowerCase();
+                assertStringLen(key, 3, "KEY");
+                if(["ping","register","reload"].includes(key)){
+                    throw "INVALID KEY";
+                }
+                const url = data.url || "";
+                assertStringLen(url, 3, "URL");
+                this.redirects.addRedirect(key, url);
             }
-            const url = data.url || "";
-            assertStringLen(url, 3, "URL");
-            this.redirects.addRedirect(key, url);
-            return Promise.resolve("done");
+            return "done";
         });
       } else if(type == "reload") {
         this.authedRequestResponse(request,async (_data:{[k:string]:string}) => {
-            await this.auths.loadRedirects();
+            await this.auths.loadAuths();
             return "done";
         });
       } else if(type == "ping") {
@@ -78,7 +84,7 @@ export class Server {
     }
   }
 
-  private async authedRequestResponse(request: Deno.RequestEvent, cb: (data:{[k:string]:string})=>Promise<string>) : Promise<void>{
+  private async authedRequestResponse(request: Deno.RequestEvent, cb: (data:{[k:string]:string})=>Promise<string>) : Promise<void> {
     try {
         if (request.request.method !== "POST") throw "POST METHOD ONLY";
         const data = await this.getAuthedRequestJSON(request);

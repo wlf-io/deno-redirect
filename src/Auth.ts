@@ -8,16 +8,17 @@ export class Auths {
 
   constructor(config: ConfigInterface) {
     this.config = config;
-    this.loadRedirects();
+    this.loadAuths();
   }
 
-  public async addRedirect(
-    key: string,
+  public async addAuth(
     identifier: string,
     save = true,
-  ): Promise<void> {
-    this.auths[this.cleanKey(key)] = identifier;
-    if (save) await this.saveRedirects();
+  ): Promise<string> {
+    const key = this.cleanKey(crypto.randomUUID());
+    this.auths[key] = identifier;
+    if (save) await this.saveAuths();
+    return key;
   }
 
   public isAuthed(key: string): boolean {
@@ -28,7 +29,7 @@ export class Auths {
     return key.toLowerCase().trim();
   }
 
-  public async loadRedirects(): Promise<void> {
+  public async loadAuths(): Promise<void> {
     try {
       const raw = await Deno.readFile(this.config.dataDir + filename);
       const text = new TextDecoder().decode(raw);
@@ -38,12 +39,15 @@ export class Auths {
         console.log("Loaded Auths");
       }
     } catch (e) {
-      console.log("Failed to load auths", e);
+      console.log("Failed to load auths", (e instanceof Deno.errors.NotFound) ? "" : e);
     }
-    await this.saveRedirects();
+    if(Object.values(this.auths).length < 1) {
+        console.log("Added root auth:",await this.addAuth("root",false));
+    }
+    await this.saveAuths();
   }
 
-  public async saveRedirects(): Promise<void> {
+  public async saveAuths(): Promise<void> {
     try {
       await Deno.mkdir(this.config.dataDir, { recursive: true });
       await Deno.writeFile(
@@ -52,7 +56,7 @@ export class Auths {
       );
       console.log("Saved Auths");
     } catch (e) {
-      console.error("Failed to save auths", e);
+      console.error("Failed to save auths", (e instanceof Deno.errors.NotFound) ? "" : e);
     }
   }
 }
