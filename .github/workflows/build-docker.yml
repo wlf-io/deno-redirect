@@ -1,0 +1,27 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Git Ref
+        id: vars
+        run: echo ::set-output name=git-ref::${GITHUB_REF#refs/*/}
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.32.x
+      - name: Git Checkout
+        uses: actions/checkout@v3
+      - name: echo version
+        run: echo -e "export const VERSION = \"${{ steps.vars.outputs.git-ref }}";\n" > src/version.ts && cat src/version.ts
+      - name: Docker Login
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}

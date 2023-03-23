@@ -1,0 +1,11 @@
+{
+    "tasks": {
+        "build": "deno task build-win && deno task build-linux",
+        "build-win": "deno compile --target x86_64-pc-windows-msvc --allow-write=./data --allow-read=./data --allow-net --allow-env=REDIRECT_DATA_DIR,REDIRECT_PORT --output bin/redirect.exe src/main.ts",
+        "build-linux": "deno compile --target x86_64-unknown-linux-gnu --allow-write=./data --allow-read=./data --allow-net --allow-env=REDIRECT_DATA_DIR,REDIRECT_PORT --output bin/redirect src/main.ts",
+        "run": "deno run --allow-write=./data --allow-read=./data --allow-net --allow-env=REDIRECT_DATA_DIR,REDIRECT_PORT ./src/main.ts ",
+        "watch": "deno run --watch --allow-write=./data --allow-read=./data --allow-net --allow-env=REDIRECT_DATA_DIR,REDIRECT_PORT ./src/main.ts ",
+        "fmt" : "deno fmt ./src",
+        "docker": "docker build --no-cache -t deno-redir:build --progress plain ."
+    }
+}
