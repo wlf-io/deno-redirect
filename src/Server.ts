@@ -46,7 +46,7 @@ export class Server {
       );
       const type = path[0] || "";
       if (path.length < 1) {
-        request.respondWith(new Response("Bad Request", { status: 400 }));
+        await request.respondWith(new Response("Bad Request", { status: 400 }));
       } else if (type == "register") {
         this.authedRequestResponse(request, (data)=>{
             const key = (data.key || "").trim().toLowerCase();
@@ -65,14 +65,14 @@ export class Server {
             return "done";
         });
       } else if(type == "ping") {
-        request.respondWith(new Response("pong",{status:200}));
+        await request.respondWith(new Response("pong",{status:200}));
       } else {
         const redir = this.redirects.getRedirect(type);
         if (redir) {
-          request.respondWith(Response.redirect(redir, 302));
+          await request.respondWith(Response.redirect(redir, 302));
           console.log("Redirect ", conn.remoteAddr.hostname, type, redir);
         } else {
-          request.respondWith(new Response("Not Found", { status: 404 }));
+          await request.respondWith(new Response("Not Found", { status: 404 }));
         }
       }
     }
@@ -83,16 +83,16 @@ export class Server {
         if (request.request.method !== "POST") throw "POST METHOD ONLY";
         const data = await this.getAuthedRequestJSON(request);
         const resp = await cb(data);
-        request.respondWith(new Response(resp || "done", { status: 200 }));
+        await request.respondWith(new Response(resp || "done", { status: 200 }));
       } catch (e) {
         let er = e;
         if (typeof e == "string") {
           er = new RegisterError(e);
         }
         if (!(er instanceof RegisterError)) {
-          request.respondWith(new Response("FAILURE", { status: 500 }));
+          await request.respondWith(new Response("FAILURE", { status: 500 }));
         } else {
-          request.respondWith(new Response(er.message, { status: e.code }));
+          await request.respondWith(new Response(er.message, { status: e.code }));
         }
       }
   }
