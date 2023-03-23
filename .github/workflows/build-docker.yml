@@ -11,7 +11,9 @@ jobs:
     steps:
       - name: Get Git Ref
         id: vars
-        run: echo ::set-output name=git-ref::${GITHUB_REF#refs/*/}
+        run: echo "git-ref=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT"
+      - name: Echo Ref
+        run: echo ${{ steps.vars.outputs.git-ref }}
       - uses: denoland/setup-deno@v1
         with:
           deno-version: v1.32.x
