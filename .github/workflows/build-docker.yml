@@ -25,3 +25,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker build
+        run: deno task docker
+      - name: Docker tag
+        run: docker tag deno-redirect:build ghcr.io/wlf-io/deno-redirect:latest
+      - name: Docker tag version
+        if: "contains(github.ref, 'tags/v')"
+        run: docker tag deno-redirect:build ghcr.io/wlf-io/deno-redirect:${{ steps.vars.outputs.git-ref }}
+      - name: Docker Push Tag
+        run: docker push ghcr.io/wlf-io/deno-redirect:latest
+      - name: Docker Push Tag
+        if: "contains(github.ref, 'tags/v')"
+        run: docker push ghcr.io/wlf-io/deno-redirect:${{ steps.vars.outputs.git-ref }}

@@ -6,6 +6,6 @@
         "run": "deno run --allow-write=./data --allow-read=./data --allow-net --allow-env=REDIRECT_DATA_DIR,REDIRECT_PORT ./src/main.ts ",
         "watch": "deno run --watch --allow-write=./data --allow-read=./data --allow-net --allow-env=REDIRECT_DATA_DIR,REDIRECT_PORT ./src/main.ts ",
         "fmt" : "deno fmt ./src",
-        "docker": "docker build --no-cache -t deno-redir:build --progress plain ."
+        "docker": "docker build --no-cache -t deno-redirect:build --progress plain ."
     }
 }
