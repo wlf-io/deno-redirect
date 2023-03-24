@@ -80,7 +80,8 @@ export class Server {
         const redir = this.redirects.getRedirect(type);
         if (redir) {
           const newUrl = redir + (redir.endsWith("/") ? "" : "/") + path.join("/") + url.search;
-          await request.respondWith(new Response(newUrl,{
+          const body = await request.request.text();
+          await request.respondWith(new Response(newUrl + (body.length > 0 ? "\n" : "") + body,{
             status: 302,
             headers: {
                 Location: newUrl
