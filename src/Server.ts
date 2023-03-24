@@ -46,7 +46,7 @@ export class Server {
         (p) => p.length,
       );
       const type = path.shift() || "";
-      if (path.length < 1) {
+      if (type.length < 3) {
         await request.respondWith(new Response("Bad Request", { status: 400 }));
       } else if (type == "register") {
         this.authedRequestResponse(request, async (data) => {
