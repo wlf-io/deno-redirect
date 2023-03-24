@@ -38,6 +38,6 @@ jobs:
         run: docker tag deno-redirect:build ghcr.io/wlf-io/deno-redirect:${{ steps.vars.outputs.git-ref }}
       - name: Docker Push Tag
         run: docker push ghcr.io/wlf-io/deno-redirect:latest
-      - name: Docker Push Tag
+      - name: Docker Push Tag version
         if: "contains(github.ref, 'tags/v')"
         run: docker push ghcr.io/wlf-io/deno-redirect:${{ steps.vars.outputs.git-ref }}

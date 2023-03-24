@@ -1,6 +1,6 @@
 import { ConfigInterface } from "./Config.ts";
 
-const redirectFile = "/redirects.json";
+const redirectFile = "redirects.json";
 
 export class Redirects {
   private redirects: { [k: string]: string } = {};
@@ -38,7 +38,10 @@ export class Redirects {
         console.log("Loaded Redirects");
       }
     } catch (e) {
-      console.log("Failed to load redirects", e);
+      console.log(
+        "Failed to load redirects",
+        (e instanceof Deno.errors.NotFound) ? "" : e,
+      );
     }
     await this.saveRedirects();
   }

@@ -1,6 +1,6 @@
 import { ConfigInterface } from "./Config.ts";
 
-const filename = "/auth.json";
+const filename = "auth.json";
 
 export class Auths {
   private auths: { [k: string]: string } = {};
@@ -39,10 +39,13 @@ export class Auths {
         console.log("Loaded Auths");
       }
     } catch (e) {
-      console.log("Failed to load auths", (e instanceof Deno.errors.NotFound) ? "" : e);
+      console.log(
+        "Failed to load auths",
+        (e instanceof Deno.errors.NotFound) ? "" : e,
+      );
     }
-    if(Object.values(this.auths).length < 1) {
-        console.log("Added root auth:",await this.addAuth("root",false));
+    if (Object.values(this.auths).length < 1) {
+      console.log("Added root auth:", await this.addAuth("root", false));
     }
     await this.saveAuths();
   }
@@ -56,7 +59,7 @@ export class Auths {
       );
       console.log("Saved Auths");
     } catch (e) {
-      console.error("Failed to save auths", (e instanceof Deno.errors.NotFound) ? "" : e);
+      console.error("Failed to save auths", e);
     }
   }
 }

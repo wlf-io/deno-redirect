@@ -41,42 +41,48 @@ export class Server {
 
     const httpConn = Deno.serveHttp(conn);
     for await (const request of httpConn) {
-      const path = new URL(request.request.url).pathname.split("/").filter(
+      const url = new URL(request.request.url);
+      const path = url.pathname.split("/").filter(
         (p) => p.length,
       );
-      const type = path[0] || "";
+      const type = path.shift() || "";
+      const pathStr = "/" + ;
       if (path.length < 1) {
         await request.respondWith(new Response("Bad Request", { status: 400 }));
       } else if (type == "register") {
-        this.authedRequestResponse(request, async (data)=>{
-            if(data.type === "token"){
-                const identifier = data.identifier || "";
-                assertStringLen(identifier,5,"IDENTIFIER");
-                return await this.auths.addAuth(identifier);
-            } else {
-                const key = (data.key || "").trim().toLowerCase();
-                assertStringLen(key, 3, "KEY");
-                if(["ping","register","reload"].includes(key)){
-                    throw "INVALID KEY";
-                }
-                const url = data.url || "";
-                assertStringLen(url, 3, "URL");
-                this.redirects.addRedirect(key, url);
+        this.authedRequestResponse(request, async (data) => {
+          if (data.type === "token") {
+            const identifier = data.identifier || "";
+            assertStringLen(identifier, 5, "IDENTIFIER");
+            return await this.auths.addAuth(identifier);
+          } else {
+            const key = (data.key || "").trim().toLowerCase();
+            assertStringLen(key, 3, "KEY");
+            if (["ping", "register", "reload"].includes(key)) {
+              throw "INVALID KEY";
             }
-            return "done";
+            const url = data.url || "";
+            assertStringLen(url, 3, "URL");
+            this.redirects.addRedirect(key, url);
+          }
+          return "done";
         });
-      } else if(type == "reload") {
-        this.authedRequestResponse(request,async (_data:{[k:string]:string}) => {
+      } else if (type == "reload") {
+        this.authedRequestResponse(
+          request,
+          async (_data: { [k: string]: string }) => {
             await this.auths.loadAuths();
             return "done";
-        });
-      } else if(type == "ping") {
-        await request.respondWith(new Response("pong",{status:200}));
+          },
+        );
+      } else if (type == "ping") {
+        await request.respondWith(new Response("pong", { status: 200 }));
       } else {
         const redir = this.redirects.getRedirect(type);
         if (redir) {
-          await request.respondWith(Response.redirect(redir, 302));
-          console.log("Redirect ", conn.remoteAddr.hostname, type, redir);
+          const newUrl = redir + (redir.endsWith("/") ? "" : "/") + path.join("/") + url.search;
+          await request.respondWith(Response.redirect(newUrl, 302));
+          console.log("Redirect ", conn.remoteAddr.hostname, type, newUrl);
         } else {
           await request.respondWith(new Response("Not Found", { status: 404 }));
         }
@@ -84,23 +90,26 @@ export class Server {
     }
   }
 
-  private async authedRequestResponse(request: Deno.RequestEvent, cb: (data:{[k:string]:string})=>Promise<string>) : Promise<void> {
+  private async authedRequestResponse(
+    request: Deno.RequestEvent,
+    cb: (data: { [k: string]: string }) => Promise<string>,
+  ): Promise<void> {
     try {
-        if (request.request.method !== "POST") throw "POST METHOD ONLY";
-        const data = await this.getAuthedRequestJSON(request);
-        const resp = await cb(data);
-        await request.respondWith(new Response(resp || "done", { status: 200 }));
-      } catch (e) {
-        let er = e;
-        if (typeof e == "string") {
-          er = new RegisterError(e);
-        }
-        if (!(er instanceof RegisterError)) {
-          await request.respondWith(new Response("FAILURE", { status: 500 }));
-        } else {
-          await request.respondWith(new Response(er.message, { status: e.code }));
-        }
+      if (request.request.method !== "POST") throw "POST METHOD ONLY";
+      const data = await this.getAuthedRequestJSON(request);
+      const resp = await cb(data);
+      await request.respondWith(new Response(resp || "done", { status: 200 }));
+    } catch (e) {
+      let er = e;
+      if (typeof e == "string") {
+        er = new RegisterError(e);
       }
+      if (!(er instanceof RegisterError)) {
+        await request.respondWith(new Response("FAILURE", { status: 500 }));
+      } else {
+        await request.respondWith(new Response(er.message, { status: e.code }));
+      }
+    }
   }
 
   stop() {
