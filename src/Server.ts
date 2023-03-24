@@ -46,7 +46,6 @@ export class Server {
         (p) => p.length,
       );
       const type = path.shift() || "";
-      const pathStr = "/" + ;
       if (path.length < 1) {
         await request.respondWith(new Response("Bad Request", { status: 400 }));
       } else if (type == "register") {
