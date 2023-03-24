@@ -80,7 +80,12 @@ export class Server {
         const redir = this.redirects.getRedirect(type);
         if (redir) {
           const newUrl = redir + (redir.endsWith("/") ? "" : "/") + path.join("/") + url.search;
-          await request.respondWith(Response.redirect(newUrl, 302));
+          await request.respondWith(new Response(newUrl,{
+            status: 302,
+            headers: {
+                Location: newUrl
+            }
+          }));
           console.log("Redirect ", conn.remoteAddr.hostname, type, newUrl);
         } else {
           await request.respondWith(new Response("Not Found", { status: 404 }));
